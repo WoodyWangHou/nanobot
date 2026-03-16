@@ -1,6 +1,6 @@
 <div align="center">
   <img src="nanobot_logo.png" alt="nanobot" width="500">
-  <h1>nanobot: Ultra-Lightweight Personal AI Assistant</h1>
+  <h1>nanobot: Ultra-Lightweight Personal AI Assistant + Agent Swarm</h1>
   <p>
     <a href="https://pypi.org/project/nanobot-ai/"><img src="https://img.shields.io/pypi/v/nanobot-ai" alt="PyPI"></a>
     <a href="https://pepy.tech/project/nanobot-ai"><img src="https://static.pepy.tech/badge/nanobot-ai" alt="Downloads"></a>
@@ -71,6 +71,8 @@
 ⚡️ **Lightning Fast**: Minimal footprint means faster startup, lower resource usage, and quicker iterations.
 
 💎 **Easy-to-Use**: One-click to deploy and you're ready to go.
+
+🤖 **Agent Swarm** (NEW): Self-improving agent swarm framework with OpenAI Agents SDK and LiteLLM support. Supports MiniMax, Gemini, and other providers for multi-agent orchestration with budget control and progress tracking.
 
 ## 🏗️ Architecture
 
@@ -863,6 +865,75 @@ That's it! Environment variables, model prefixing, config matching, and `nanobot
 | `strip_model_prefix` | Strip existing prefix before re-prefixing | `True` (for AiHubMix) |
 
 </details>
+
+### Agent Swarm
+
+> [!TIP]
+> Self-improving agent swarm framework with multi-provider support.
+
+nanobot now includes an **Agent Swarm** module that enables multi-agent orchestration with budget control and progress tracking.
+
+#### Features
+
+- **Multi-Agent Orchestration**: Specialized agents (Researcher, Executor, Reviewer) work together
+- **Budget Control**: Token-based rate limiting with auto-pause
+- **Progress Tracking**: Event-based progress updates and iteration history
+- **Multi-Provider Support**: Works with OpenAI Agents SDK, LiteLLM (MiniMax, Gemini, Claude, GPT, etc.)
+- **SQLite Storage**: Persistent experiment tracking
+
+#### Quick Start
+
+```python
+from nanobot.swarm.coordinator import SwarmCoordinator
+from nanobot.swarm.storage.database import Database
+from nanobot.swarm.storage.models import BudgetPolicy
+
+# Create database and policy
+db = Database("swarm.db")
+policy = BudgetPolicy(max_tokens_per_window=100000, window_duration="1h")
+
+# Create coordinator with your model
+coordinator = SwarmCoordinator(db, policy, model="minimax/MiniMax-M2.1")
+
+# Start experiment
+import asyncio
+exp = asyncio.run(coordinator.start_experiment("Research AI trends", ""))
+print(f"Experiment: {exp.id}")
+
+# Run iterations
+result = asyncio.run(coordinator.run_iteration("researcher", "Find latest AI trends"))
+print(result)
+```
+
+#### Supported Models
+
+| Model Type | Backend | Example |
+|------------|---------|---------|
+| OpenAI | OpenAI Agents SDK | `gpt-4o` |
+| MiniMax | LiteLLM | `minimax/MiniMax-M2.1` |
+| Gemini | LiteLLM | `gemini/gemini-pro` |
+| Claude | LiteLLM | `claude-3-opus` |
+| DeepSeek | LiteLLM | `deepseek-chat` |
+| Qwen | LiteLLM | `qwen-max` |
+
+#### CLI Commands
+
+```bash
+# Start experiment
+nanobot swarm start "Research goal" --budget 10k/1h --model gpt-4o
+
+# Check progress
+nanobot swarm progress <experiment-id>
+```
+
+#### Architecture
+
+- `nanobot/swarm/coordinator.py` - Main orchestration
+- `nanobot/swarm/storage/` - SQLite storage for experiments/iterations
+- `nanobot/swarm/controller/` - Budget and pacing control
+- `nanobot/swarm/agents/` - Specialized agent implementations
+- `nanobot/swarm/tracker/` - Progress tracking
+- `nanobot/channel_adapter.py` - Integration with nanobot channels
 
 
 ### MCP (Model Context Protocol)

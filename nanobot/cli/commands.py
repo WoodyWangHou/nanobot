@@ -986,5 +986,12 @@ def _login_github_copilot() -> None:
         raise typer.Exit(1)
 
 
+# Import swarm commands
+from nanobot.cli import swarm_commands as swarm_app
+
+# Add swarm subcommand
+app.add_typer(swarm_app.app, name="swarm", help="Agent Swarm commands")
+
+
 if __name__ == "__main__":
     app()
